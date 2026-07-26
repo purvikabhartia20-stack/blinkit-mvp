@@ -1,0 +1,9 @@
+.python/
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+ridealong/ridealong.db
+.env
+**/.env
+
