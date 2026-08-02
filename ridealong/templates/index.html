@@ -1,163 +1,220 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#F8CB46">
-    <title>RideAlong — Quick delivery, thoughtful discovery</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
-  </head>
-  <body>
-    <main class="demo-shell">
-      <section class="phone" aria-label="RideAlong grocery shopping demo">
-        <header class="app-header">
-          <div class="delivery-row">
-            <div>
-              <p class="eyebrow">DELIVERY IN</p>
-              <h1>10 minutes</h1>
-            </div>
-            <button class="profile-button" type="button" aria-label="Open profile">
-              <span aria-hidden="true">P</span>
-            </button>
-          </div>
-          <button class="location-button" type="button">
-            <span class="location-dot" aria-hidden="true"></span>
-            Home · HSR Layout, Bengaluru
-            <span aria-hidden="true">⌄</span>
-          </button>
-        </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0C831F">
+  <title>blinkit — RideAlong Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+<main class="demo-shell">
 
-        <div class="phone-content">
-          <section class="demo-controls" aria-labelledby="demo-title">
-            <div class="control-heading">
-              <div>
-                <p class="eyebrow muted">RIDEALONG DEMO</p>
-                <h2 id="demo-title">Choose a shopper</h2>
-              </div>
-              <div class="demo-status">
-                <span class="live-pill">Live API</span>
-                <button id="reset-demo" class="reset-demo" type="button">Reset demo</button>
-              </div>
-            </div>
-            <label class="sr-only" for="user-select">Demo shopper</label>
-            <select id="user-select" aria-describedby="user-meta"></select>
-            <p id="user-meta" class="user-meta">Loading shopper history…</p>
+  <!-- ══════════════════════════════════════════
+       PHONE MOCKUP
+  ══════════════════════════════════════════ -->
+  <section class="phone" aria-label="RideAlong grocery demo">
 
-            <div class="preset-list" aria-label="Demo cart presets">
-              <button type="button" data-preset="gap">Gap-Fill</button>
-              <button type="button" data-preset="stocking">Stocking-Up</button>
-              <button type="button" data-preset="exploring">Rule A</button>
-              <button type="button" data-preset="none">No trigger</button>
-            </div>
-          </section>
+    <!-- Green top header -->
+    <header class="app-header">
 
-          <section class="category-section" aria-labelledby="category-title">
-            <div class="section-heading">
-              <h2 id="category-title">Shop by category</h2>
-              <button id="show-all" class="text-button" type="button">See all</button>
-            </div>
-            <div id="category-strip" class="category-strip"></div>
-          </section>
-
-          <section class="catalog-section" aria-labelledby="catalog-title">
-            <div class="section-heading">
-              <div>
-                <h2 id="catalog-title">Everyday essentials</h2>
-                <p>Fresh picks for your next delivery</p>
-              </div>
-              <span id="catalog-count" class="count-label"></span>
-            </div>
-            <div id="catalog-grid" class="catalog-grid" aria-live="polite">
-              <p class="loading-state">Loading products…</p>
-            </div>
-          </section>
+      <!-- Row 1: logo + login + cart -->
+      <div class="hdr-top">
+        <div class="hdr-logo" aria-label="blinkit">
+          <svg width="90" height="28" viewBox="0 0 120 36" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="29" font-family="Poppins,sans-serif" font-weight="900" font-size="34" fill="#F8CB46">blinkit</text>
+          </svg>
         </div>
-
-        <div id="trial-sheet" class="trial-sheet" hidden>
-          <div class="trial-card" role="dialog" aria-modal="true" aria-labelledby="trial-title">
-            <div class="trial-grabber" aria-hidden="true"></div>
-            <div class="trial-topline">
-              <span class="trial-tag">TRIAL</span>
-              <span id="trial-path" class="trial-path"></span>
-            </div>
-            <div class="trial-product">
-              <div id="trial-swatch" class="trial-swatch" aria-hidden="true"></div>
-              <div>
-                <h2 id="trial-title">Try something new</h2>
-                <p id="trial-product-name" class="trial-name"></p>
-                <p id="trial-price" class="trial-price"></p>
-              </div>
-            </div>
-            <p id="trial-message" class="trial-message"></p>
-            <div class="trial-actions">
-              <button id="decline-trial" class="secondary-button" type="button">No thanks</button>
-              <button id="accept-trial" class="primary-button" type="button">Add trial</button>
-            </div>
-          </div>
-        </div>
-
-        <section id="confirmation-screen" class="confirmation-screen" hidden aria-labelledby="confirmation-title">
-          <div class="success-mark" aria-hidden="true">✓</div>
-          <p class="eyebrow muted">ORDER CONFIRMED</p>
-          <h2 id="confirmation-title">Your order is on the way</h2>
-          <p id="confirmation-copy"></p>
-          <div id="final-order" class="final-order"></div>
-          <button id="new-order" class="primary-button wide" type="button">Start a new order</button>
-        </section>
-
-        <footer id="cart-dock" class="cart-dock" hidden>
-          <div class="delivery-progress">
-            <div class="progress-copy">
-              <span id="delivery-label">Add items for free delivery</span>
-              <strong id="cart-total-top">₹0</strong>
-            </div>
-            <div class="progress-track" aria-hidden="true">
-              <span id="progress-fill"></span>
-            </div>
-          </div>
-          <button id="checkout-button" class="checkout-button" type="button" disabled>
-            <span>
-              <strong id="cart-summary">0 items · ₹0</strong>
-              <small>View cart</small>
-            </span>
-            <span class="checkout-label">Checkout <span aria-hidden="true">›</span></span>
+        <div class="hdr-actions">
+          <button class="btn-login" type="button">Login</button>
+          <button class="btn-mycart" type="button" aria-label="My Cart">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            My Cart
           </button>
-        </footer>
+        </div>
+      </div>
+
+      <!-- Row 2: ETA + location -->
+      <div class="hdr-loc-row">
+        <div class="hdr-eta">
+          <span class="eta-eyebrow">Delivery in</span>
+          <span class="eta-value">10 <span class="eta-unit">minutes</span></span>
+        </div>
+        <button class="hdr-location" type="button" aria-label="Change address">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="loc-text">Home · HSR Layout, Bengaluru</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      <!-- Row 3: search bar -->
+      <div class="hdr-search">
+        <svg class="search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <label class="sr-only" for="search-input">Search products</label>
+        <input id="search-input" class="search-input" type="search" placeholder='Search "chips"' autocomplete="off">
+      </div>
+
+    </header>
+    <!-- /app-header -->
+
+    <!-- Scrollable body -->
+    <div class="phone-body">
+
+      <!-- Demo controls -->
+      <section class="demo-bar" aria-labelledby="demo-heading">
+        <div class="demo-bar-top">
+          <div class="demo-bar-left">
+            <span class="demo-eyebrow">RIDEALONG DEMO</span>
+            <span class="live-pill">● Live API</span>
+          </div>
+          <button id="reset-demo" class="btn-reset" type="button">Reset demo</button>
+        </div>
+        <label class="sr-only" for="user-select">Demo shopper</label>
+        <select id="user-select" aria-describedby="user-meta"></select>
+        <p id="user-meta" class="user-meta">Loading shopper history…</p>
+        <div class="preset-row" aria-label="Cart presets">
+          <button type="button" data-preset="gap">🛒 Gap-Fill</button>
+          <button type="button" data-preset="stocking">📦 Stocking-Up</button>
+          <button type="button" data-preset="exploring">🔍 Rule A</button>
+          <button type="button" data-preset="none">🚫 No trigger</button>
+        </div>
       </section>
 
-      <aside class="mechanism-panel" aria-labelledby="mechanism-title">
-        <header>
-          <p class="eyebrow muted">TRANSPARENCY PANEL</p>
-          <h2 id="mechanism-title">What just happened?</h2>
-          <p>Every value below comes directly from the RideAlong API.</p>
-        </header>
-        <div id="mechanism-empty" class="mechanism-empty">
-          Build a cart or choose a preset, then check out to inspect the decision.
+      <!-- Category grid -->
+      <section class="cat-section" aria-labelledby="cat-heading">
+        <div class="section-row">
+          <h2 id="cat-heading" class="section-title">Shop by category</h2>
+          <button id="show-all" class="btn-see-all" type="button">see all</button>
         </div>
-        <div id="mechanism-output" hidden>
-          <div class="decision-summary">
-            <span id="decision-badge" class="decision-badge"></span>
-            <h3 id="decision-title"></h3>
-            <p id="decision-reason"></p>
+        <div id="category-strip" class="cat-grid"></div>
+      </section>
+
+      <!-- Product catalog -->
+      <section class="catalog-section" aria-labelledby="catalog-heading">
+        <div class="section-row">
+          <h2 id="catalog-heading" class="section-title">Everyday essentials</h2>
+          <span id="catalog-count" class="catalog-count"></span>
+        </div>
+        <div id="catalog-grid" class="catalog-grid" aria-live="polite">
+          <p class="empty-state">Loading products…</p>
+        </div>
+      </section>
+
+    </div>
+    <!-- /phone-body -->
+
+    <!-- Trial bottom sheet -->
+    <div id="trial-sheet" class="trial-sheet" hidden>
+      <div class="trial-backdrop" id="trial-backdrop"></div>
+      <div class="trial-card" role="dialog" aria-modal="true" aria-labelledby="trial-name">
+        <div class="trial-handle" aria-hidden="true"></div>
+        <div class="trial-tags">
+          <span class="trial-badge">✨ TRIAL OFFER</span>
+          <span id="trial-path" class="trial-path"></span>
+        </div>
+        <div class="trial-product-row">
+          <div class="trial-img-box">
+            <div id="trial-swatch" class="trial-swatch"></div>
           </div>
-          <dl id="mechanism-data" class="mechanism-data"></dl>
-          <details>
-            <summary>Raw API response</summary>
-            <pre id="raw-response"></pre>
-          </details>
+          <div class="trial-product-info">
+            <p id="trial-category" class="trial-cat-label"></p>
+            <h2 id="trial-name" class="trial-product-name"></h2>
+            <p id="trial-price" class="trial-price"></p>
+          </div>
         </div>
-        <section class="rules-note">
-          <h3>Guardrails</h3>
-          <ul>
-            <li>Frequent shoppers only</li>
-            <li>At most one offer per 7 days</li>
-            <li>Never interrupts self-led discovery</li>
-            <li>Only vetted, in-stock products</li>
-          </ul>
-        </section>
-      </aside>
-    </main>
-    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  </body>
+        <p id="trial-message" class="trial-message"></p>
+        <div class="trial-actions">
+          <button id="decline-trial" class="btn-decline" type="button">No thanks</button>
+          <button id="accept-trial" class="btn-accept" type="button">Add to cart</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation screen -->
+    <section id="confirmation-screen" class="confirm-screen" hidden aria-labelledby="confirm-heading">
+      <div class="confirm-inner">
+        <div class="confirm-tick" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <p class="confirm-eta-text">Arriving in <strong>10 min</strong> 🚴</p>
+        <h2 id="confirm-heading" class="confirm-title">Order Confirmed!</h2>
+        <p id="confirmation-copy" class="confirm-copy"></p>
+        <div id="final-order" class="final-order"></div>
+        <button id="new-order" class="btn-primary wide" type="button">Place another order</button>
+      </div>
+    </section>
+
+    <!-- Cart dock -->
+    <footer id="cart-dock" class="cart-dock" hidden>
+      <div class="delivery-bar">
+        <div class="delivery-bar-labels">
+          <span id="delivery-label">Add items for free delivery</span>
+          <strong id="cart-total-top">₹0</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span id="progress-fill" class="progress-fill"></span>
+        </div>
+      </div>
+      <button id="checkout-button" class="checkout-btn" type="button" disabled>
+        <div class="checkout-left">
+          <span id="cart-summary" class="checkout-count">0 items · ₹0</span>
+          <span class="checkout-sub">View cart &amp; checkout</span>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </footer>
+
+  </section>
+  <!-- /phone -->
+
+
+  <!-- ══════════════════════════════════════════
+       TRANSPARENCY PANEL
+  ══════════════════════════════════════════ -->
+  <aside class="panel" aria-labelledby="panel-heading">
+    <div class="panel-header">
+      <div class="panel-header-top">
+        <span class="panel-eyebrow">TRANSPARENCY PANEL</span>
+        <span class="live-pill">● Live API</span>
+      </div>
+      <h2 id="panel-heading" class="panel-title">What just happened?</h2>
+      <p class="panel-sub">Every value below comes directly from the RideAlong API.</p>
+    </div>
+
+    <div id="mechanism-empty" class="panel-empty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p>Build a cart or choose a preset, then check out to see the decision.</p>
+    </div>
+
+    <div id="mechanism-output" hidden>
+      <div class="decision-box">
+        <span id="decision-badge" class="decision-badge"></span>
+        <h3 id="decision-title" class="decision-title"></h3>
+        <p id="decision-reason" class="decision-reason"></p>
+      </div>
+      <dl id="mechanism-data" class="mech-data"></dl>
+      <details>
+        <summary>Raw API response</summary>
+        <pre id="raw-response"></pre>
+      </details>
+    </div>
+
+    <section class="guardrails">
+      <h3 class="guardrails-title">Guardrails</h3>
+      <ul class="guardrails-list">
+        <li><span class="check-icon">✓</span> Frequent shoppers only</li>
+        <li><span class="check-icon">✓</span> At most one offer per 7 days</li>
+        <li><span class="check-icon">✓</span> Never interrupts self-led discovery</li>
+        <li><span class="check-icon">✓</span> Only vetted, in-stock products</li>
+      </ul>
+    </section>
+  </aside>
+
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
 </html>

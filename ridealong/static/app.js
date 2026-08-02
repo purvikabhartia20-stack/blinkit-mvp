@@ -6,6 +6,7 @@ const state = {
   userId: 1,
   cart: new Map(),
   category: "all",
+  searchQuery: "",
   evaluation: null,
   trialProduct: null,
   submitting: false,
@@ -38,6 +39,7 @@ const elements = {
   catalogGrid: document.querySelector("#catalog-grid"),
   catalogCount: document.querySelector("#catalog-count"),
   showAll: document.querySelector("#show-all"),
+  searchInput: document.querySelector("#search-input"),
   cartDock: document.querySelector("#cart-dock"),
   cartSummary: document.querySelector("#cart-summary"),
   cartTotalTop: document.querySelector("#cart-total-top"),
@@ -47,7 +49,9 @@ const elements = {
   trialSheet: document.querySelector("#trial-sheet"),
   trialPath: document.querySelector("#trial-path"),
   trialSwatch: document.querySelector("#trial-swatch"),
-  trialName: document.querySelector("#trial-product-name"),
+  trialCategoryLabel: document.querySelector("#trial-category"),
+  trialTitle: document.querySelector("#trial-name"),
+  trialName: document.querySelector("#trial-name"),
   trialPrice: document.querySelector("#trial-price"),
   trialMessage: document.querySelector("#trial-message"),
   acceptTrial: document.querySelector("#accept-trial"),
@@ -179,6 +183,23 @@ function categoryColor(category) {
   );
 }
 
+// Emoji icons for known categories — falls back to first-letter initial
+const CATEGORY_EMOJI = {
+  all: "🏪",
+  grocery: "🥦",
+  snacks: "🍟",
+  beverages: "🥤",
+  personal_care: "🧴",
+  beauty: "💄",
+  home_fragrance: "🕯️",
+  stationery: "📎",
+  household: "🧹",
+  electronics_accessories: "🔌",
+  pharmacy: "💊",
+  baby_care: "👶",
+  baby_toys: "🧸",
+};
+
 function renderCategories() {
   const categories = [
     "all",
@@ -187,13 +208,16 @@ function renderCategories() {
   elements.categoryStrip.innerHTML = categories
     .map((category) => {
       const label = category === "all" ? "All" : titleCase(category);
-      const initial = category === "all" ? "A" : category.charAt(0);
       const color = category === "all" ? "#F8CB46" : categoryColor(category);
+      const emoji = CATEGORY_EMOJI[category] || category.charAt(0).toUpperCase();
+      const isActive = state.category === category;
       return `
-        <button class="category-chip ${state.category === category ? "active" : ""}"
+        <button class="cat-chip ${isActive ? "active" : ""}"
                 type="button" data-category="${escapeHTML(category)}">
-          <span class="category-icon" style="background:${color}33">${initial}</span>
-          <span>${escapeHTML(label)}</span>
+          <div class="cat-tile" style="background:${color}33">
+            ${emoji}
+          </div>
+          <span class="cat-label">${escapeHTML(label)}</span>
         </button>
       `;
     })
@@ -203,10 +227,9 @@ function renderCategories() {
 function productCard(product) {
   const quantity = state.cart.get(product.product_id) || 0;
   const control = !product.in_stock
-    ? `<button class="add-button" type="button" disabled>OUT</button>`
+    ? `<button class="btn-add" type="button" disabled>Out of stock</button>`
     : quantity > 0
-      ? `
-        <div class="quantity-stepper" aria-label="${escapeHTML(product.name)} quantity">
+      ? `<div class="qty-stepper" aria-label="${escapeHTML(product.name)} quantity">
           <button type="button" data-action="decrease"
                   data-product-id="${product.product_id}"
                   aria-label="Remove one ${escapeHTML(product.name)}">−</button>
@@ -215,18 +238,20 @@ function productCard(product) {
                   data-product-id="${product.product_id}"
                   aria-label="Add one ${escapeHTML(product.name)}">+</button>
         </div>`
-      : `<button class="add-button" type="button" data-action="increase"
+      : `<button class="btn-add" type="button"
+                 data-action="increase"
                  data-product-id="${product.product_id}">ADD</button>`;
 
   return `
-    <article class="product-card ${product.in_stock ? "" : "out-of-stock"}">
-      <div class="product-visual" aria-hidden="true">
-        <span class="product-swatch" style="background:${product.color_hex}"></span>
+    <article class="product-card ${product.in_stock ? "" : "oos"}">
+      <div class="prod-img" style="background:${product.color_hex}1A" aria-hidden="true">
+        ${!product.in_stock ? `<span class="oos-tag">Out of stock</span>` : ""}
+        <span class="prod-swatch" style="background:${product.color_hex}"></span>
       </div>
-      <p class="product-category">${escapeHTML(titleCase(product.category))}</p>
-      <h3 class="product-name">${escapeHTML(product.name)}</h3>
-      <div class="product-bottom">
-        <span class="product-price">${money(product.price)}</span>
+      <p class="prod-cat">${escapeHTML(titleCase(product.category))}</p>
+      <h3 class="prod-name">${escapeHTML(product.name)}</h3>
+      <div class="prod-bottom">
+        <span class="prod-price">${money(product.price)}</span>
         ${control}
       </div>
     </article>
@@ -234,14 +259,24 @@ function productCard(product) {
 }
 
 function renderCatalog() {
-  const products =
+  let products =
     state.category === "all"
       ? state.products
       : state.products.filter(
           (product) => product.category === state.category,
         );
-  elements.catalogCount.textContent = `${products.length} products`;
-  elements.catalogGrid.innerHTML = products.map(productCard).join("");
+  const q = (state.searchQuery || "").toLowerCase();
+  if (q) {
+    products = products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q),
+    );
+  }
+  elements.catalogCount.textContent = `${products.length} product${products.length !== 1 ? "s" : ""}`;
+  elements.catalogGrid.innerHTML = products.length
+    ? products.map(productCard).join("")
+    : `<p class="empty-state">No products match "${escapeHTML(q)}"</p>`;
 }
 
 function renderCart() {
@@ -254,8 +289,8 @@ function renderCart() {
   const amountAway = Math.max(0, FREE_DELIVERY_MINIMUM - total);
   elements.deliveryLabel.textContent =
     amountAway > 0
-      ? `${money(amountAway)} away from free delivery`
-      : "Free delivery unlocked";
+      ? `₹${Math.ceil(amountAway)} away from free delivery`
+      : "🎉 Free delivery unlocked!";
   elements.progressFill.style.width = `${Math.min(100, (total / FREE_DELIVERY_MINIMUM) * 100)}%`;
 }
 
@@ -264,10 +299,12 @@ function resetExperience({ clearMechanism = true } = {}) {
   state.evaluation = null;
   state.trialProduct = null;
   state.submitting = false;
+  state.searchQuery = "";
+  if (elements.searchInput) elements.searchInput.value = "";
   elements.trialSheet.hidden = true;
   elements.confirmation.hidden = true;
   elements.cartDock.hidden = true;
-  document.querySelector(".phone-content").hidden = false;
+  document.querySelector(".phone-body").hidden = false;
   document.querySelectorAll("[data-preset]").forEach((button) => {
     button.classList.remove("active");
   });
@@ -352,7 +389,10 @@ function showTrial(response) {
   state.trialProduct = product;
   elements.trialPath.textContent = titleCase(response.path);
   elements.trialSwatch.style.background = product.color_hex;
-  elements.trialName.textContent = product.name;
+  if (elements.trialCategoryLabel) {
+    elements.trialCategoryLabel.textContent = titleCase(product.category);
+  }
+  if (elements.trialTitle) elements.trialTitle.textContent = product.name;
   elements.trialPrice.textContent = money(product.price);
   elements.trialMessage.textContent = response.message;
   elements.trialSheet.hidden = false;
@@ -395,7 +435,7 @@ function renderConfirmation(keptTrial) {
     </div>`,
   ].join("");
   elements.trialSheet.hidden = true;
-  document.querySelector(".phone-content").hidden = true;
+  document.querySelector(".phone-body").hidden = true;
   elements.cartDock.hidden = true;
   elements.confirmation.hidden = false;
   elements.newOrder.focus();
@@ -408,7 +448,9 @@ async function checkout() {
 
   state.submitting = true;
   elements.checkout.disabled = true;
-  elements.checkout.querySelector(".checkout-label").textContent = "Checking…";
+  const checkoutItems = elements.checkout.querySelector(".checkout-items");
+  const prevText = checkoutItems ? checkoutItems.textContent : "";
+  if (checkoutItems) checkoutItems.textContent = "Checking…";
   try {
     const response = await api("/api/evaluate", {
       method: "POST",
@@ -430,8 +472,7 @@ async function checkout() {
     showToast(error.message);
   } finally {
     state.submitting = false;
-    elements.checkout.querySelector(".checkout-label").innerHTML =
-      'Checkout <span aria-hidden="true">›</span>';
+    if (checkoutItems) checkoutItems.textContent = prevText;
     renderCart();
   }
 }
@@ -486,7 +527,7 @@ async function initialize() {
     renderCart();
     await renderUserMeta();
   } catch (error) {
-    elements.catalogGrid.innerHTML = `<p class="loading-state">${escapeHTML(error.message)}</p>`;
+    elements.catalogGrid.innerHTML = `<p class="empty-state">${escapeHTML(error.message)}</p>`;
     showToast(error.message);
   }
 }
@@ -542,7 +583,7 @@ elements.catalogGrid.addEventListener("click", (event) => {
   );
 });
 
-document.querySelector(".preset-list").addEventListener("click", async (event) => {
+document.querySelector(".preset-row").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-preset]");
   if (!button) return;
   if (state.userId !== 1) {
@@ -551,7 +592,7 @@ document.querySelector(".preset-list").addEventListener("click", async (event) =
     await renderUserMeta();
   }
   elements.confirmation.hidden = true;
-  document.querySelector(".phone-content").hidden = false;
+  document.querySelector(".phone-body").hidden = false;
   loadPreset(button.dataset.preset);
 });
 
@@ -559,5 +600,19 @@ elements.checkout.addEventListener("click", checkout);
 elements.acceptTrial.addEventListener("click", () => resolveTrial(true));
 elements.declineTrial.addEventListener("click", () => resolveTrial(false));
 elements.newOrder.addEventListener("click", () => resetExperience());
+
+// Search filtering
+if (elements.searchInput) {
+  elements.searchInput.addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    state.searchQuery = q;
+    renderCatalog();
+  });
+}
+
+// Tap backdrop to dismiss trial sheet
+document.querySelector("#trial-backdrop")?.addEventListener("click", () => {
+  elements.trialSheet.hidden = true;
+});
 
 initialize();
