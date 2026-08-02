@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: blinkit-ridealong
+    runtime: python
+    rootDir: ridealong
+    buildCommand: pip install -r requirements.txt && python seed.py
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
