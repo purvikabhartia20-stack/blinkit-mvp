@@ -1,5 +1,7 @@
 """SQLite connection helpers and schema for RideAlong."""
 
+from __future__ import annotations
+
 import sqlite3
 from pathlib import Path
 
@@ -91,3 +93,32 @@ def rebuild_schema(connection: sqlite3.Connection) -> None:
     for table in TABLES_IN_DROP_ORDER:
         connection.execute(f"DROP TABLE IF EXISTS {table}")
     connection.executescript(SCHEMA)
+
+
+def database_needs_seed() -> bool:
+    """True when the DB is missing, empty, or missing required product columns."""
+    if not DATABASE_PATH.exists():
+        return True
+    try:
+        with get_connection() as connection:
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(products)")
+            }
+            if not {"unit", "image"}.issubset(columns):
+                return True
+            count = connection.execute(
+                "SELECT COUNT(*) AS n FROM products"
+            ).fetchone()["n"]
+            return count == 0
+    except sqlite3.Error:
+        return True
+
+
+def ensure_database() -> None:
+    """Seed the catalog on first boot / after a schema change (needed on Render)."""
+    if not database_needs_seed():
+        return
+    from seed import seed
+
+    seed()

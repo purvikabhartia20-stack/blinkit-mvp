@@ -8,7 +8,7 @@ import sys
 
 from flask import Flask, jsonify, render_template, request
 
-from db import get_connection
+from db import ensure_database, get_connection
 from env_loader import load_dotenv
 from config_check import validate_config
 from logic import (
@@ -22,6 +22,7 @@ from logic.messaging import generate_message
 
 load_dotenv()
 validate_config()
+ensure_database()
 
 HOST = "127.0.0.1"
 PORT = 5000
