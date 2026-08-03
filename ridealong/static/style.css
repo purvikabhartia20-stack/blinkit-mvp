@@ -364,23 +364,59 @@ summary:focus-visible {
 .product-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.10); }
 .product-card.oos { opacity: .55; }
 
-.prod-img {
-  height: 100px;
-  border-radius: var(--r-sm);
-  display: grid;
-  place-items: center;
-  margin-bottom: 8px;
+.prod-media {
   position: relative;
+  margin-bottom: 8px;
+}
+
+/* Photo and fallback swatch share one grid cell so they stack. */
+.prod-img {
+  display: grid;
+  border-radius: var(--r-sm);
+  background: var(--white);
   overflow: hidden;
 }
+.prod-img > * { grid-area: 1 / 1; }
+
+.product-card .prod-img { height: 108px; }
+
+.prod-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.prod-photo[hidden] { display: none; }
+
 .prod-swatch {
-  width: 58px;
-  height: 70px;
+  justify-self: center;
+  align-self: center;
+  width: 58%;
+  height: 70%;
   border-radius: 14px 14px 10px 10px;
-  border: 5px solid rgba(255,255,255,.65);
+  border: 4px solid rgba(255,255,255,.65);
   transform: rotate(-4deg);
   box-shadow: 0 2px 8px rgba(0,0,0,.14);
 }
+
+.prod-eta {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--border);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--ink2);
+}
+
 .oos-tag {
   position: absolute;
   top: 6px;
@@ -412,6 +448,16 @@ summary:focus-visible {
   line-height: 1.35;
   min-height: 32px;
   color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.prod-unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 3px;
 }
 .prod-bottom {
   display: flex;
@@ -594,15 +640,11 @@ summary:focus-visible {
 .trial-img-box {
   width: 86px; height: 86px;
   border-radius: var(--r-lg);
-  background: var(--surface);
-  display: grid;
-  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--white);
   overflow: hidden;
 }
-.trial-swatch {
-  width: 86px; height: 86px;
-  border-radius: var(--r-lg);
-}
+.trial-thumb { width: 100%; height: 100%; border-radius: var(--r-lg); }
 .trial-cat-label {
   font-size: 10px;
   font-weight: 700;
@@ -612,10 +654,15 @@ summary:focus-visible {
   margin-bottom: 3px;
 }
 .trial-product-name {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1.25;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+}
+.trial-unit {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
 }
 .trial-price {
   font-size: 18px;
@@ -713,6 +760,7 @@ summary:focus-visible {
 }
 .final-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 9px 13px;
@@ -720,8 +768,52 @@ summary:focus-visible {
   font-size: 12px;
   font-weight: 500;
 }
-.final-row:last-child { border-bottom: none; font-weight: 700; }
-.final-row.trial-row  { background: var(--yellow-lt); color: #6D5E24; font-weight: 700; }
+.final-row:last-child { border-bottom: none; }
+.final-row.trial-row  { background: var(--yellow-lt); color: #6D5E24; }
+.final-total { font-weight: 800; font-size: 13px; }
+
+.final-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.final-thumb {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.final-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.final-item-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.final-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.trial-row .final-item-meta { color: #8A7833; }
+.trial-tag {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: var(--ink);
+  background: var(--yellow);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
 
 .btn-primary {
   min-height: 44px;

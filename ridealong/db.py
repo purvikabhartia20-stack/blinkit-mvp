@@ -15,12 +15,14 @@ CREATE TABLE users (
 CREATE TABLE products (
     product_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
+    unit TEXT NOT NULL,
     category TEXT NOT NULL,
     price REAL NOT NULL CHECK (price >= 0),
     in_stock INTEGER NOT NULL CHECK (in_stock IN (0, 1)),
     safe_for_auto_trial INTEGER NOT NULL
         CHECK (safe_for_auto_trial IN (0, 1)),
-    color_hex TEXT NOT NULL
+    color_hex TEXT NOT NULL,
+    image TEXT NOT NULL
 );
 
 CREATE TABLE orders (

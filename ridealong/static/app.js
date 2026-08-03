@@ -48,10 +48,11 @@ const elements = {
   checkout: document.querySelector("#checkout-button"),
   trialSheet: document.querySelector("#trial-sheet"),
   trialPath: document.querySelector("#trial-path"),
-  trialSwatch: document.querySelector("#trial-swatch"),
+  trialImgBox: document.querySelector("#trial-img-box"),
   trialCategoryLabel: document.querySelector("#trial-category"),
   trialTitle: document.querySelector("#trial-name"),
   trialName: document.querySelector("#trial-name"),
+  trialUnit: document.querySelector("#trial-unit"),
   trialPrice: document.querySelector("#trial-price"),
   trialMessage: document.querySelector("#trial-message"),
   acceptTrial: document.querySelector("#accept-trial"),
@@ -224,6 +225,23 @@ function renderCategories() {
     .join("");
 }
 
+const IMAGE_BASE = "/static/img/products/";
+
+// Photo layered over the colour swatch; the swatch shows through if the
+// image is missing, so the catalog never renders an empty tile.
+function productThumb(product, extraClass = "") {
+  const source = product.image
+    ? `<img class="prod-photo" src="${IMAGE_BASE}${encodeURIComponent(product.image)}"
+             alt="${escapeHTML(product.name)}" loading="lazy">`
+    : "";
+  return `
+    <div class="prod-img ${extraClass}">
+      <span class="prod-swatch" style="background:${escapeHTML(product.color_hex)}"></span>
+      ${source}
+    </div>
+  `;
+}
+
 function productCard(product) {
   const quantity = state.cart.get(product.product_id) || 0;
   const control = !product.in_stock
@@ -244,12 +262,17 @@ function productCard(product) {
 
   return `
     <article class="product-card ${product.in_stock ? "" : "oos"}">
-      <div class="prod-img" style="background:${product.color_hex}1A" aria-hidden="true">
+      <div class="prod-media">
+        ${productThumb(product)}
         ${!product.in_stock ? `<span class="oos-tag">Out of stock</span>` : ""}
-        <span class="prod-swatch" style="background:${product.color_hex}"></span>
+        <span class="prod-eta">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          10 MINS
+        </span>
       </div>
       <p class="prod-cat">${escapeHTML(titleCase(product.category))}</p>
       <h3 class="prod-name">${escapeHTML(product.name)}</h3>
+      <p class="prod-unit">${escapeHTML(product.unit || "")}</p>
       <div class="prod-bottom">
         <span class="prod-price">${money(product.price)}</span>
         ${control}
@@ -388,11 +411,12 @@ function showTrial(response) {
   const product = response.product;
   state.trialProduct = product;
   elements.trialPath.textContent = titleCase(response.path);
-  elements.trialSwatch.style.background = product.color_hex;
+  elements.trialImgBox.innerHTML = productThumb(product, "trial-thumb");
   if (elements.trialCategoryLabel) {
     elements.trialCategoryLabel.textContent = titleCase(product.category);
   }
   if (elements.trialTitle) elements.trialTitle.textContent = product.name;
+  if (elements.trialUnit) elements.trialUnit.textContent = product.unit || "";
   elements.trialPrice.textContent = money(product.price);
   elements.trialMessage.textContent = response.message;
   elements.trialSheet.hidden = false;
@@ -413,23 +437,26 @@ function renderConfirmation(keptTrial) {
   elements.confirmationCopy.textContent = trial
     ? `Your order includes ${trial.name}, a first purchase from ${titleCase(trial.category)}.`
     : "Your basket is confirmed exactly as selected.";
+  const finalRow = (product, quantity, extraClass = "", tag = "") => `
+    <div class="final-row ${extraClass}">
+      <div class="final-item">
+        ${productThumb(product, "final-thumb")}
+        <div class="final-item-text">
+          <span class="final-item-name">${escapeHTML(product.name)}</span>
+          <span class="final-item-meta">
+            ${tag}${escapeHTML(product.unit || "")} · Qty ${quantity}
+          </span>
+        </div>
+      </div>
+      <strong>${money(product.price * quantity)}</strong>
+    </div>`;
+
   elements.finalOrder.innerHTML = [
-    ...entries.map(
-      ({ product, quantity }) => `
-        <div class="final-row">
-          <span>${quantity} × ${escapeHTML(product.name)}</span>
-          <strong>${money(product.price * quantity)}</strong>
-        </div>`,
-    ),
+    ...entries.map(({ product, quantity }) => finalRow(product, quantity)),
     ...(trial
-      ? [
-          `<div class="final-row trial-row">
-            <span>TRIAL · ${escapeHTML(trial.name)}</span>
-            <strong>${money(trial.price)}</strong>
-          </div>`,
-        ]
+      ? [finalRow(trial, 1, "trial-row", `<span class="trial-tag">TRIAL</span>`)]
       : []),
-    `<div class="final-row">
+    `<div class="final-row final-total">
       <strong>Total</strong>
       <strong>${money(total)}</strong>
     </div>`,
@@ -614,5 +641,17 @@ if (elements.searchInput) {
 document.querySelector("#trial-backdrop")?.addEventListener("click", () => {
   elements.trialSheet.hidden = true;
 });
+
+// Image errors do not bubble, so listen during the capture phase and let the
+// colour swatch behind the photo take over.
+document.addEventListener(
+  "error",
+  (event) => {
+    if (event.target.classList?.contains("prod-photo")) {
+      event.target.hidden = true;
+    }
+  },
+  true,
+);
 
 initialize();

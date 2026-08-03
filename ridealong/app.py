@@ -89,11 +89,13 @@ def _serialize_product(product: dict) -> dict:
     return {
         "product_id": product["product_id"],
         "name": product["name"],
+        "unit": product["unit"],
         "category": product["category"],
         "price": product["price"],
         "in_stock": bool(product["in_stock"]),
         "safe_for_auto_trial": bool(product["safe_for_auto_trial"]),
         "color_hex": product["color_hex"],
+        "image": product["image"],
         "affinity_score": product.get("affinity_score"),
         "selection_mode": product.get("selection_mode"),
         "trial_value_cap": product.get("trial_value_cap"),
@@ -134,8 +136,8 @@ def api_catalog():
     with get_connection() as connection:
         rows = connection.execute(
             """
-            SELECT product_id, name, category, price, in_stock,
-                   safe_for_auto_trial, color_hex
+            SELECT product_id, name, unit, category, price, in_stock,
+                   safe_for_auto_trial, color_hex, image
             FROM products
             ORDER BY category, product_id
             """
